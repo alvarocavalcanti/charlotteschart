@@ -1,0 +1,103 @@
+---
+- hosts: all
+  tasks:
+    - name: Set up apt repos
+      apt_repository: repo='{{ item }}' state=present
+      with_items:
+        - deb http://archive.ubuntu.com/ubuntu trusty main
+        - deb http://archive.ubuntu.com/ubuntu trusty-security main
+        - deb http://archive.ubuntu.com/ubuntu trusty-updates main
+        - deb http://archive.ubuntu.com/ubuntu trusty universe
+        - deb http://toolbelt.heroku.com/ubuntu ./
+
+    - name: Set up apt keys
+      apt_key: url=https://toolbelt.heroku.com/apt/release.key
+
+    - name: Upgrade the OS
+      apt: upgrade=yes update_cache=yes
+
+    - name: Install extra packages
+      apt: name={{ item }} state=latest
+      with_items:
+        - autoconf
+        - bind9-host
+        - bison
+        - build-essential
+        - coreutils
+        - curl
+        - daemontools
+        - dnsutils
+        - ed
+        - git
+        - heroku-toolbelt
+        - imagemagick
+        - iputils-tracepath
+        - language-pack-en
+        - libbz2-dev
+        - libcurl4-openssl-dev
+        - libevent-dev
+        - libglib2.0-dev
+        - libjpeg-dev
+        - libmagickwand-dev
+        - libmysqlclient-dev
+        - libncurses5-dev
+        - libpq-dev
+        - libpq5
+        - libreadline6-dev
+        - libssl-dev
+        - libxml2-dev
+        - libxslt-dev
+        - netcat-openbsd
+        - nginx
+        - nodejs
+        - openssh-client
+        - openssh-server
+        - python
+        - python-dev
+        - python3-dev
+        - python3-pip
+        - python-psycopg2
+        - ruby
+        - ruby-dev
+        - socat
+        - syslinux
+        - tar
+        - telnet
+        - zip
+        - zlib1g-dev
+
+    - name: Copy NGINX Conf
+      copy: src=config/nginx dest=/etc/nginx/sites-available/bapi_port_forwarding
+
+    - name: Link NGINX Conf
+      file: src=/etc/nginx/sites-available/bapi_port_forwarding dest=/etc/nginx/sites-enabled/bapi_port_forwarding state=link
+
+    - name: Cleanup default NGINX Available Conf
+      file: path=/etc/nginx/sites-available/default state=absent
+
+    - name: Cleanup default NGINX Enabled Conf
+      file: path=/etc/nginx/sites-enabled/default state=absent
+
+    - name: Start NGINX service
+      service: name=nginx state=restarted enabled=yes
+
+    - name: Remove Python 2 virtualenv
+      apt: name=python-virtualenv state=absent
+
+    - name: Install latest pip
+      pip: executable=pip3 name=pip state=latest
+
+    - name: Install Python 3 virtualenv
+      pip: executable=pip3 name=virtualenv state=latest
+
+    - name: Install Python 3 Paver
+      pip: executable=pip3 name=Paver state=latest
+
+    - name: Install foreman gem
+      gem: name=foreman state=latest user_install=no
+
+    - name: Remove home dir venv from ssh env
+      lineinfile: dest=/home/vagrant/.bashrc regexp='~/bapi-venv/bin/activate' state=absent
+
+    - name: Set up initial ssh env
+      lineinfile: dest=/home/vagrant/.bashrc line='source /vagrant/venv/bin/activate; cd /vagrant/'
