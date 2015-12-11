@@ -1,4 +1,4 @@
-# charlotteschart
+# charlotteschart [![Build Status](https://snap-ci.com/alvarocavalcanti/charlotteschart/branch/master/build_image)](https://snap-ci.com/alvarocavalcanti/charlotteschart/branch/master)
 Charlotte's Chart is a simple tool to generate a spider chart
 
 # Why?
